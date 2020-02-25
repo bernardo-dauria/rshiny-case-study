@@ -13,3 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 - Create a first empty **Shyny App**
 - load the _gapminder_ package and dataset
 - add a filter input by the variable **year**
+- make the filter multiple variable by using the %in% command
+- add a _tabPanel_ showing an histogram
+
