@@ -1,0 +1,15 @@
+---
+title: "RShiny-case-study"
+author: "Bernardo D'Auria"
+date: "2/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+- Create the Git Repository
+- Create a first empty **Shyny App**
+- load the _gapminder_ package and dataset
+- add a filter input by the variable **year**
