@@ -18,7 +18,12 @@ plotPanel <- tabPanel("Plot",
                                  hover = hoverOpts(id = "plot_hover", delayType = "throttle"),
                       )),
                     column(width = 4,
-                      verbatimTextOutput("plot_hoverinfo")
+                           h2("Info"),
+                           h3(
+                             textOutput("hoverCountry", container = span),
+                             textOutput("hoverYear", container = span),
+                           ),
+                           textOutput("hoverPop")
                     )
                   )
               )
@@ -60,6 +65,27 @@ server <- function(input, output, session) {
     cat("Hover (throttled):\n")
     str(input$plot_hover)
   })
+  
+    hoverCountryIdx <- reactive({
+      req(input$plot_hover$x)
+      round(input$plot_hover$x)
+      })
+    hoverCountry <- reactive({
+      req(hoverCountryIdx() > 0 & hoverCountryIdx() <= length(input$selCountry))
+      input$selCountry[hoverCountryIdx()]
+      })
+    hoverYearIdx <- reactive(ceiling((input$plot_hover$x-hoverCountryIdx()+0.5)*length(input$selYear)))
+    hoverYear <- reactive({
+      req(input$plot_hover$x)
+      req(hoverCountry() != "")
+      input$selYear[hoverYearIdx()]}
+      )
+    output$hoverCountry <- renderText(hoverCountry())
+    output$hoverYear <-renderText(hoverYear())
+    output$hoverPop <-renderText(paste("Population: ",
+                                       gapminder_year() %>% 
+                                    filter(year == hoverYear(), country == hoverCountry()) %>%
+                                    pull(pop)))
 }
 
 # Run the application 
