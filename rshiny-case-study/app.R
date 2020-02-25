@@ -1,7 +1,9 @@
 library(shiny)
 library(tidyverse)
+library(magrittr)
 library(gapminder)
 
+gapminder %<>% mutate_at("year", as.factor)
 gapminder_years = gapminder %>% select(year) %>% unique %>% arrange
 
 dataPanel <- tabPanel("Data",
@@ -30,11 +32,9 @@ server <- function(input, output) {
   gapminder_year <- reactive({gapminder %>% filter(year %in% input$selYear)})
   output$data <- renderTable(gapminder_year());
   output$plot <- renderPlot(
-    barplot(head(gapminder_year() %>% pull(pop)),
-            main=paste("Population in",input$selYear),
-            names.arg= head(gapminder_year() %>% pull(country))
+    ggplot(data=head(gapminder_year()), aes(x=country, y=pop, fill=year))
+      + geom_bar(stat="identity", position=position_dodge())
     )
-  )
 }
 
 # Run the application 
