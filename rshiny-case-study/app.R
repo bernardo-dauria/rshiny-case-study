@@ -28,6 +28,10 @@ plotPanel <- tabPanel("Plot",
                   )
               )
 
+plotlyPanel <- tabPanel("Plotly",
+                        plotly::plotlyOutput("plotly")
+)
+
 myHeader <- div(
   selectInput(
     inputId = "selYear",
@@ -49,18 +53,28 @@ myHeader <- div(
 ui <- navbarPage("shiny App",
                  dataPanel,
                  plotPanel,
+                 plotlyPanel,
                  header = myHeader
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) { 
+  
   gapminder_year <- reactive({gapminder %>%
       filter(year %in% input$selYear, country %in% input$selCountry)})
+  
   output$data <- renderTable(gapminder_year());
+  
   output$plot <- renderPlot(
-    ggplot(data=gapminder_year(), aes(x=country, y=pop, fill=year))
-      + geom_bar(stat="identity", position=position_dodge())
-    )
+    ggplot(gapminder_year(), aes(x=country, y=pop, fill=year))
+    + geom_bar(stat="identity", position=position_dodge())
+  )
+  
+  output$plotly <- plotly::renderPlotly(
+    ggplot(gapminder_year(), aes(x=country, y=pop, fill=year))
+    + geom_bar(stat="identity", position=position_dodge())
+  )
+  
   output$plot_hoverinfo <- renderPrint({
     cat("Hover (throttled):\n")
     str(input$plot_hover)
