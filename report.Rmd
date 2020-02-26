@@ -1,0 +1,37 @@
+---
+title: "report"
+author: "Bernardo D'Auria"
+date: "26/2/2020"
+output: pdf_document
+params:
+  selYear: ["1952", "1967", "1977"]
+  selCountry: ["Argentina", "Afghanistan"]
+---
+```{r include=FALSE}
+  library(gapminder)
+  library(tidyverse)
+  gapminder_year <- gapminder %>% 
+    mutate_at(c("year", "country"), as.factor) %>%
+    filter(year %in% params$selYear, country %in% params$selCountry)
+```
+
+# Countries
+```{r}
+# The `params` object is available in the document.
+params$selCountry
+```
+
+# Years
+```{r}
+# The `params` object is available in the document.
+params$selYear
+```
+
+A histogram of `r params$n_sample` random points with `r params$dist` distribution
+
+<pre class="r"><code class="hljs">hist(`r params$dist`(`r params$n_sample`), breaks=<span class="hljs-string">"`r params$breaks`"</span>, main=<span class="hljs-string">"Random Generation"</span>)</code></pre>
+
+```{r echo=FALSE}
+ggplot(gapminder_year, aes(x=country, y=pop, fill=year)) + 
+  geom_bar(stat="identity", position=position_dodge())
+```
