@@ -2,10 +2,32 @@ library(shiny)
 library(tidyverse)
 library(magrittr)
 library(gapminder)
+library(shinythemes)
+library(shinyjs)
+
+esDB <- read_csv("es.csv")
 
 gapminder %<>% mutate_at(c("year", "country"), as.factor)
 gapminder_years = levels(gapminder$year) %>% str_sort()
 gapminder_countries = levels(gapminder$country)
+
+
+myHeader <- div(id="advanced",
+  selectInput(
+    inputId = "selYear",
+    label = "Select the Year",
+    multiple = TRUE,
+    choices = gapminder_years,
+    selected = c(gapminder_years[1])
+  ),
+  selectInput(
+    inputId = "selCountry",
+    label = "Select the Country",
+    multiple = TRUE,
+    choices = gapminder_countries,
+    selected = c(gapminder_countries[1])
+  )
+)
 
 dataPanel <- tabPanel("Data",
                       tableOutput("data")
@@ -32,29 +54,20 @@ plotlyPanel <- tabPanel("Plotly",
                         plotly::plotlyOutput("plotly")
 )
 
-myHeader <- div(
-  selectInput(
-    inputId = "selYear",
-    label = "Select the Year",
-    multiple = TRUE,
-    choices = gapminder_years,
-    selected = c(gapminder_years[1])
-  ),
-  selectInput(
-    inputId = "selCountry",
-    label = "Select the Country",
-    multiple = TRUE,
-    choices = gapminder_countries,
-    selected = c(gapminder_countries[1])
-  )
-)
+mapPanel <- tabPanel("map",
+                     DT::DTOutput("esTable")
+            )
 
 # Define UI for application that draws a histogram
 ui <- navbarPage("shiny App",
+                 useShinyjs(),
                  dataPanel,
                  plotPanel,
                  plotlyPanel,
-                 header = myHeader
+                 mapPanel,
+                 header = myHeader,
+                 theme = shinytheme("united"),
+                 id = "navBar"
 )
 
 # Define server logic required to draw a histogram
@@ -80,6 +93,8 @@ server <- function(input, output, session) {
     str(input$plot_hover)
   })
   
+  output$esTable <- DT::renderDT(head(esDB,30))
+  
     hoverCountryIdx <- reactive({
       req(input$plot_hover$x)
       round(input$plot_hover$x)
@@ -100,6 +115,14 @@ server <- function(input, output, session) {
                                        gapminder_year() %>% 
                                     filter(year == hoverYear(), country == hoverCountry()) %>%
                                     pull(pop)))
+    
+    observe({
+      if (input$navBar == "map") {
+        shinyjs::hide("advanced")
+      } else {
+        shinyjs::show("advanced")
+      }
+    })
 }
 
 # Run the application 
