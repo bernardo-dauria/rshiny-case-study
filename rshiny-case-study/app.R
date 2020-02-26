@@ -4,8 +4,12 @@ library(magrittr)
 library(gapminder)
 library(shinythemes)
 library(shinyjs)
+library(leaflet)
 
-esDB <- read_csv("es.csv")
+# taken from https://simplemaps.com/data/es-cities
+esDB <- read_csv("es.csv") %>% drop_na() %>% mutate(popReduced = log(population/1000))
+maxPop <- esDB$population %>% max(na.rm=TRUE)
+#cat(file=stderr(), "maxPop:", maxPop, "\n")
 
 gapminder %<>% mutate_at(c("year", "country"), as.factor)
 gapminder_years = levels(gapminder$year) %>% str_sort()
@@ -13,6 +17,7 @@ gapminder_countries = levels(gapminder$country)
 
 
 myHeader <- div(id="advanced",
+  useShinyjs(),
   selectInput(
     inputId = "selYear",
     label = "Select the Year",
@@ -55,12 +60,15 @@ plotlyPanel <- tabPanel("Plotly",
 )
 
 mapPanel <- tabPanel("map",
+                     leafletOutput('map', width = '100%', height = '300px'),
+                     absolutePanel(top = 10, right = 10, id = 'controls',
+                                   sliderInput('sizePop', 'Polulation Size', 0, maxPop, maxPop/10)
+                                   ),
                      DT::DTOutput("esTable")
             )
 
 # Define UI for application that draws a histogram
 ui <- navbarPage("shiny App",
-                 useShinyjs(),
                  dataPanel,
                  plotPanel,
                  plotlyPanel,
@@ -93,8 +101,6 @@ server <- function(input, output, session) {
     str(input$plot_hover)
   })
   
-  output$esTable <- DT::renderDT(head(esDB,30))
-  
     hoverCountryIdx <- reactive({
       req(input$plot_hover$x)
       round(input$plot_hover$x)
@@ -123,6 +129,22 @@ server <- function(input, output, session) {
         shinyjs::show("advanced")
       }
     })
+    
+    esDBfiltered <- reactive(esDB %>% filter (population <= input$sizePop))
+    
+    output$map <- renderLeaflet({
+        esDBfiltered() %>%
+        leaflet() %>%
+        addTiles() %>%
+        setView( 0, 39.82, zoom = 5) %>%
+        addCircleMarkers(
+          popup = ~ city,
+          radius = ~ popReduced,
+          fillColor = 'red', color = 'red', weight = 1
+        )
+    })
+    
+    output$esTable <- DT::renderDT(esDBfiltered())
 }
 
 # Run the application 
