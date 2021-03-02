@@ -1,7 +1,7 @@
 # Tasks
 
 - create an empty repository on GitHub
-([list of commits](https://https://github.com/bernardo-dauria/rshiny-case-study/commits/master))
+([list of commits](https://github.com/bernardo-dauria/rshiny-case-study/commits/master))
 - create a new Project of type _Version Control_ using the url of the GitHub repository 
 **commit** and **push** &mdash; [**C&P**](https://github.com/bernardo-dauria/rshiny-case-study/commit/ce1c74d93f0af9d99b1cfae5929e40dbcb60bc97)
 - crate a new file of type _Shiny Web App_ give the name _my_app_
